@@ -301,29 +301,84 @@ menu.addEventListener('focusin', e => { const o = e.target.closest('[role=option
 document.addEventListener('pointerdown', e => { if (!drop.contains(e.target)) closeDrop(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrop(true); });
 
-/* ---------- simulated refraction: keep each glass edge's magnified dot field aligned with the page ---------- */
-const M1 = 1.12, M2 = 1.32; // must match .lq1 / .lq2 background-size (24px x M)
-let glassEls = [], lqQueued = 0;
-function liquify() {
-  glassEls = $$('.glass');
-  glassEls.forEach(g => { if (!g.querySelector(':scope>.lq')) { const a = document.createElement('i'), b = document.createElement('i'); a.className = 'lq lq1'; b.className = 'lq lq2'; a.setAttribute('aria-hidden', 'true'); b.setAttribute('aria-hidden', 'true'); g.prepend(a, b); } });
-  placeLenses();
+/* ---------- liquid glass: real refraction (Chrome, Edge and other Chromium browsers) ----------
+   Chromium can run an SVG filter through backdrop-filter. Each glass gets a displacement map drawn
+   for its own size: neutral in the middle, and along the rim it pulls the backdrop from nearer the
+   centre, so whatever passes behind the glass bends at the edge like thick glass. The backdrop is
+   also lightly blurred and saturated inside the same filter. Other engines keep the CSS frosted glass. */
+const LIQUID = !!(navigator.userAgentData && navigator.userAgentData.brands && navigator.userAgentData.brands.some(b => /Chromium/.test(b.brand)))
+  && !matchMedia('(prefers-reduced-transparency: reduce)').matches;
+const SVGNS = 'http://www.w3.org/2000/svg';
+const filters = new Map(), watched = new WeakSet();
+let defs = null, lqQueued = 0;
+function edgeMap(w, h, r, band) {
+  const k = .5, W = Math.max(4, Math.round(w * k)), H = Math.max(4, Math.round(h * k)), R = Math.min(r * k, W / 2, H / 2), B = band * k;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d'), img = ctx.createImageData(W, H), d = img.data;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const px = x + .5 - W / 2, py = y + .5 - H / 2, qx = Math.abs(px) - (W / 2 - R), qy = Math.abs(py) - (H / 2 - R);
+    const ox = Math.max(qx, 0), oy = Math.max(qy, 0), out = Math.hypot(ox, oy);
+    const depth = R - out - Math.min(Math.max(qx, qy), 0); // distance in from the rounded rim
+    let dx = 0, dy = 0;
+    if (depth >= 0 && depth < B) {
+      let nx, ny; // outward normal of the rim
+      if (qx > 0 && qy > 0) { nx = ox / out * Math.sign(px); ny = oy / out * Math.sign(py); }
+      else if (qx > qy) { nx = Math.sign(px); ny = 0; } else { nx = 0; ny = Math.sign(py); }
+      const t = 1 - depth / B, m = t * t * (3 - 2 * t); // smooth, strongest right at the rim
+      dx = -nx * m; dy = -ny * m;
+    }
+    const i = (y * W + x) * 4; d[i] = 128 + dx * 127; d[i + 1] = 128 + dy * 127; d[i + 2] = 128; d[i + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return c.toDataURL('image/png');
 }
-function placeLenses() {
-  const vh = innerHeight;
-  for (const g of glassEls) {
-    const r = g.getBoundingClientRect();
-    if (!r.width || r.bottom < -40 || r.top > vh + 40) continue;
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    // a page point q shows up at c + (q - c) * M, so the pattern's origin lands at c * (1 - M)
-    g.style.setProperty('--x1', (cx * (1 - M1) - r.left).toFixed(1) + 'px'); g.style.setProperty('--y1', (cy * (1 - M1) - r.top).toFixed(1) + 'px');
-    g.style.setProperty('--x2', (cx * (1 - M2) - r.left).toFixed(1) + 'px'); g.style.setProperty('--y2', (cy * (1 - M2) - r.top).toFixed(1) + 'px');
+function el(name, attrs) { const n = document.createElementNS(SVGNS, name); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; }
+function filterFor(w, h, r, soft) {
+  const key = `${w}x${h}r${r}b${soft}`;
+  if (filters.has(key)) return filters.get(key);
+  if (!defs || filters.size > 160) { // start a fresh set if sizes have piled up
+    if (defs) defs.parentNode.remove();
+    filters.clear();
+    const svg = el('svg', {width:0, height:0, 'aria-hidden':'true', focusable:'false'}); svg.style.position = 'absolute';
+    defs = el('defs', {}); svg.appendChild(defs); document.body.appendChild(svg);
+  }
+  const id = 'lg' + Math.random().toString(36).slice(2, 8), band = Math.min(30, Math.min(w, h) * .32), scale = Math.round(Math.min(48, band * 1.6));
+  const f = el('filter', {id, x:0, y:0, width:w, height:h, filterUnits:'userSpaceOnUse', primitiveUnits:'userSpaceOnUse', 'color-interpolation-filters':'sRGB'});
+  f.append(
+    el('feGaussianBlur', {in:'SourceGraphic', stdDeviation:soft, result:'soft'}),
+    el('feImage', {href:edgeMap(w, h, r, band), x:0, y:0, width:w, height:h, preserveAspectRatio:'none', result:'map'}),
+    el('feDisplacementMap', {in:'soft', in2:'map', scale, xChannelSelector:'R', yChannelSelector:'G', result:'bent'}),
+    el('feColorMatrix', {in:'bent', type:'saturate', values:1.5})
+  );
+  defs.appendChild(f); filters.set(key, id);
+  return id;
+}
+const gro = new ResizeObserver(() => queueLiquid());
+function liquify() {
+  if (!LIQUID) return;
+  for (const g of $$('.glass')) {
+    if (!watched.has(g)) { watched.add(g); gro.observe(g); }
+    if (!g.getClientRects().length) continue;
+    const w = Math.round(g.offsetWidth), h = Math.round(g.offsetHeight);
+    if (!w || !h || w * h > 520000) { // very large panels keep the plain frosted glass
+      if (g.dataset.lg) { g.style.removeProperty('backdrop-filter'); g.style.removeProperty('-webkit-backdrop-filter'); delete g.dataset.lg; }
+      continue;
+    }
+    const r = Math.round(Math.min(parseFloat(getComputedStyle(g).borderTopLeftRadius) || 0, w / 2, h / 2));
+    const soft = g.matches('.menu,.toast') ? 10 : 3; // menus and toasts sit over text: keep them more frosted
+    const key = `${w}x${h}r${r}b${soft}`;
+    if (g.dataset.lg === key) continue;
+    const id = filterFor(w, h, r, soft);
+    g.style.setProperty('backdrop-filter', `url(#${id})`); g.style.setProperty('-webkit-backdrop-filter', `url(#${id})`);
+    g.dataset.lg = key;
   }
 }
-const queueLenses = () => { if (!lqQueued) lqQueued = requestAnimationFrame(() => { lqQueued = 0; placeLenses(); }); };
-addEventListener('scroll', queueLenses, {passive:true});
-addEventListener('resize', queueLenses, {passive:true});
-new MutationObserver(() => { if (!lqQueued) lqQueued = requestAnimationFrame(() => { lqQueued = 0; liquify(); }); }).observe(document.body, {childList:true, subtree:true});
+function queueLiquid() { if (!lqQueued) lqQueued = requestAnimationFrame(() => { lqQueued = 0; liquify(); }); }
+if (LIQUID) {
+  document.documentElement.classList.add('liquid');
+  new MutationObserver(queueLiquid).observe(document.querySelector('main'), {childList:true, subtree:true});
+  new MutationObserver(queueLiquid).observe($('#toasts'), {childList:true});
+}
 $('#nf-q').addEventListener('input', e => { nf.q = e.target.value.slice(0, 60); nAll = false; renderNews(); });
 $('#p-calm').addEventListener('change', e => { prefs.calm = e.target.checked; savePrefs(); });
 $$('[data-pv]').forEach(c => c.addEventListener('change', () => { const v = c.dataset.pv; prefs.vendors = c.checked ? [...new Set([...prefs.vendors, v])] : prefs.vendors.filter(x => x !== v); savePrefs(); renderBadge(); }));
