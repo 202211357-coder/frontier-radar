@@ -147,9 +147,9 @@ function renderWatch() {
     const nx = D.upcoming.filter(u => u.vendor === v && diff(u.date) >= 0).sort((a, b) => a.date < b.date ? -1 : 1)[0];
     const n30 = evs.filter(e => e.type === 'launch' && diff(e.date) >= -30).length;
     return `<a class="tile glass press ${VC[v]}" href="#${v}"><h3>${esc(D.vendors[v].name)}</h3><p>${esc(D.vendors[v].intro || '')}</p>
-      <dl><dt>최신 플래그십</dt><dd>${esc(fl ? short(fl.model) : '—')}<small>${fl ? esc(md(fl.date) + ' 출시 · ' + ago(fl.date)) : ''}</small></dd>
+      <dl><dt>최신 플래그십</dt><dd>${esc(fl ? short(fl.model) : '—')}<small>${fl ? `<span class="nw">${esc(md(fl.date))} 출시</span> · <span class="nw">${esc(ago(fl.date))}</span>` : ''}</small></dd>
       <dt>최근 30일</dt><dd>출시 ${n30}건</dd>
-      <dt>다음 예정 변경</dt><dd>${nx ? `${esc(nx.title)}<small>${esc(md(nx.date))} · ${dday(nx.date)} 남음</small>` : '없음'}</dd></dl>
+      <dt>다음 예정 변경</dt><dd>${nx ? `${esc(nx.title)}<small><span class="nw">${esc(md(nx.date))}</span> · <span class="nw">${dday(nx.date)} 남음</span></small>` : '없음'}</dd></dl>
       <span class="go">타임라인·벤치마크 보기 →</span></a>`;
   }).join('');
   const w = D.watch || [];
@@ -327,6 +327,8 @@ function edgeMap(w, h, r, band) {
       const t = 1 - depth / B, m = t * t * (3 - 2 * t); // smooth, strongest right at the rim
       dx = -nx * m; dy = -ny * m;
     }
+    // the whole pane also acts as a weak convex lens: sample slightly toward the centre (magnify)
+    if (depth >= 0) { dx = Math.max(-1, Math.min(1, dx - px / (W / 2) * .14)); dy = Math.max(-1, Math.min(1, dy - py / (H / 2) * .14)); }
     const i = (y * W + x) * 4; d[i] = 128 + dx * 127; d[i + 1] = 128 + dy * 127; d[i + 2] = 128; d[i + 3] = 255;
   }
   ctx.putImageData(img, 0, 0);
@@ -342,7 +344,7 @@ function filterFor(w, h, r, soft) {
     const svg = el('svg', {width:0, height:0, 'aria-hidden':'true', focusable:'false'}); svg.style.position = 'absolute';
     defs = el('defs', {}); svg.appendChild(defs); document.body.appendChild(svg);
   }
-  const id = 'lg' + Math.random().toString(36).slice(2, 8), band = Math.min(30, Math.min(w, h) * .32), scale = Math.round(Math.min(48, band * 1.6));
+  const id = 'lg' + Math.random().toString(36).slice(2, 8), band = Math.min(46, Math.min(w, h) * .42), scale = Math.round(Math.min(90, band * 2));
   const f = el('filter', {id, x:0, y:0, width:w, height:h, filterUnits:'userSpaceOnUse', primitiveUnits:'userSpaceOnUse', 'color-interpolation-filters':'sRGB'});
   f.append(
     el('feGaussianBlur', {in:'SourceGraphic', stdDeviation:soft, result:'soft'}),

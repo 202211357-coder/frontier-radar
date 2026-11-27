@@ -5,17 +5,17 @@
   "google": {
    "name": "Google Gemini",
    "short": "Google",
-   "intro": "Gemini 4 세대(Neon·Carbon·Hydrogen·Argon)와 Genie·Omni 같은 전용 모델"
+   "intro": "Gemini 4 세대(Neon, Carbon, Hydrogen, Argon)와 Genie, Omni 같은 전용 모델"
   },
   "openai": {
    "name": "OpenAI GPT",
    "short": "OpenAI",
-   "intro": "GPT-6.x 세대의 Astra(최상위)·Sol(일상)·Terra(경량)와 특화 모델"
+   "intro": "GPT-6.x 세대의 Astra(최상위), Sol(일상), Terra(경량)와 특화 모델"
   },
   "anthropic": {
    "name": "Anthropic Claude",
    "short": "Anthropic",
-   "intro": "Claude Fable(최상위)·Opus·Sonnet·Haiku 5.x 라인업"
+   "intro": "Claude Fable(최상위), Opus, Sonnet, Haiku 5.x 라인업"
   }
  },
  "sources": {

@@ -16,7 +16,8 @@
  --g:#5b9bff;--o:#2fc796;--a:#ff8a63;--ok:#3ddc97;--okbg:rgba(61,220,151,.15);--bad:#ff7a66;--badbg:rgba(255,110,90,.15);--blob:.4;color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 html{scroll-padding-top:92px;-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Segoe UI","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Segoe UI","Malgun Gothic","Noto Sans KR","Noto Sans CJK KR",system-ui,sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word}
+.nw{white-space:nowrap}
 h1,h2,h3{margin:0;letter-spacing:-.022em;line-height:1.15;text-wrap:balance}
 h1{font-size:clamp(28px,3.4vw,38px);font-weight:800}
 h2{font-size:20px;font-weight:700}
@@ -179,13 +180,13 @@ main{min-width:0}
 .vtl .today::after{content:"";flex:1;height:2px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 11px);opacity:.35}
 
 /* ---------- watch ---------- */
-.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px;margin-bottom:18px}
 .tile{display:flex;flex-direction:column;gap:6px;padding:18px 20px;border-radius:26px;text-decoration:none;
  background:linear-gradient(155deg,color-mix(in srgb,var(--v) 22%,transparent),transparent 60%),linear-gradient(180deg,var(--fill-top),var(--fill-bot))}
 .tile h3{font-size:21px;color:var(--v)}
 .tile p{margin:0;font-size:14px;color:var(--mute)}
-.tile dl{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 12px;margin:10px 0 0;font-size:14px}
-.tile dt{color:var(--mute)}.tile dd{margin:0;font-weight:600}
+.tile dl{display:grid;grid-template-columns:minmax(0,1fr);margin:6px 0 0;font-size:15px}
+.tile dt{color:var(--mute);font-size:13px;font-weight:600;margin-top:10px}.tile dd{margin:2px 0 0;font-weight:600;line-height:1.35}
 .tile dd small{display:block;font-weight:500;color:var(--mute);font-size:13px}
 .tile .go{font-weight:700;color:var(--v);font-size:14px;margin-top:auto;padding-top:8px}
 .src{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 14px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}
