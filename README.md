@@ -19,7 +19,6 @@ GitHub Actions (3시간마다)
 | Google | Gemini API changelog, Google AI 블로그 RSS, DeepMind 블로그 RSS | 날짜별 항목 / 피드 |
 | OpenAI | Model Release Notes, OpenAI News RSS | 날짜별 항목 / 피드 |
 | Anthropic | Claude Platform release notes, anthropic.com/news | 날짜별 항목 / 링크 |
-| 선택 | 각 사 모델 목록 API (`/v1/models`) | 새 모델 ID 등장 감지 |
 
 모델명(GPT-6.2, Gemini 4 Neon, Claude Opus 5.5 등)과 출시·퇴역 관련 단어가 함께 있을 때만 새 항목으로 봅니다. 여러 출처에서 같은 모델이 4일 안에 다시 보이면 하나로 합칩니다.
 
@@ -39,8 +38,7 @@ GitHub Actions (3시간마다)
    | `NTFY_TOPIC` | Secret | 알림 쓰려면 | ntfy 앱에서 구독할 토픽 이름. 다른 사람이 추측 못 하게 길고 무작위로 |
    | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Secret | 선택 | 텔레그램 봇 알림 |
    | `WEBHOOK_URL` | Secret | 선택 | 디스코드·슬랙 웹훅 |
-   | `ANTHROPIC_API_KEY` | Secret | 선택 | 요약·벤치마크 자동 추출 + Claude 모델 목록 감시 |
-   | `OPENAI_API_KEY`, `GEMINI_API_KEY` | Secret | 선택 | 각 사 모델 목록 API 감시 |
+   | `ANTHROPIC_API_KEY` | Secret | 선택 | 새 항목의 요약·벤치마크 표 자동 추출. 없으면 원문 첫 문장만 씁니다 |
 
 4. 휴대폰에 **ntfy** 앱(Android/iOS)을 설치하고 3번의 토픽을 구독합니다.
 5. **Actions → track-frontier-models → Run workflow**로 한 번 실행해 봅니다.
@@ -53,7 +51,8 @@ GitHub Actions (3시간마다)
 pip install -r tracker/requirements.txt
 python tracker/track.py --dry-run --no-llm   # 무엇이 새로 잡히는지만 확인
 python tracker/track.py --bootstrap          # 현재 상태를 기준점으로 다시 저장 (알림 없음)
-python -m http.server -d site 8000           # 로컬에서 사이트 보기
+python -m http.server -d site 8000           # 로컬에서 사이트 보기 (CSP 없이)
+python tracker/harden.py site/index.html     # 배포 때 자동 실행: CSP 삽입 (커밋하지 마세요)
 ```
 
 ## 데이터 구조 (`site/data.json`)
@@ -65,6 +64,15 @@ python -m http.server -d site 8000           # 로컬에서 사이트 보기
 - `prices`: 가격 비교 막대
 
 자동 추가된 항목은 사이트에 "자동 수집" 표시가 붙습니다. 확인한 뒤 `status`를 `verified`로 바꾸고 커밋하면 됩니다.
+
+## 보안
+
+- **공개 사이트의 콘텐츠 보안 정책(CSP):** 배포할 때 `tracker/harden.py`가 페이지에 CSP와 `no-referrer`를 넣습니다. 페이지는 자기 파일(`app.js`, `app.css`, `data.json`)만 불러오고, 외부 스크립트·글꼴·추적기는 쓰지 않습니다. GitHub Pages는 HTTP 헤더를 바꿀 수 없어서 `<meta>`로 넣습니다.
+- **데이터는 글자로만 표시:** `data.json`의 값은 모두 이스케이프해서 넣고, 링크는 `https://`로 시작하는 주소만 씁니다. 외부 링크는 `noopener noreferrer`로 엽니다.
+- **추적기 입력 검증:** https 주소만 받고, 응답은 8MB까지만 읽고, RSS는 `defusedxml`로 파싱합니다(XML 폭탄 차단). 출처 링크는 세 회사 도메인일 때만 저장하고, 제목·요약에서 제어 문자를 지우고 길이를 자릅니다.
+- **GitHub Actions:** 워크플로 기본 권한은 없음이고, 수집 작업은 `contents: write`, 배포 작업은 `pages`·`id-token`만 받습니다. 액션은 커밋 해시로 고정하고, 파이썬 패키지는 버전을 고정했습니다. Dependabot이 매주 업데이트를 제안합니다.
+- **비밀값:** 토큰·토픽은 GitHub Secrets에만 둡니다. ntfy 토픽은 이름을 아는 사람 누구나 구독할 수 있으니 길고 무작위로 정하세요.
+- **브라우저 저장소:** 읽음 기록과 화면 설정만 `localStorage`에 저장합니다. 개인 정보는 다루지 않습니다.
 
 ## 한계
 

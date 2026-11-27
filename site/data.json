@@ -1193,7 +1193,7 @@
    7.5
   ]
  ],
- "checked": "2026-11-27 12:24 KST",
+ "checked": "2026-11-27 23:49 KST",
  "errors": [],
  "watch": [
   {
@@ -1258,36 +1258,6 @@
    "url": "https://www.anthropic.com/news",
    "ok": true,
    "items": 27
-  },
-  {
-   "id": "api-openai",
-   "vendor": "openai",
-   "name": "openai 모델 목록 API",
-   "kind": "api",
-   "url": "https://api.openai.com/v1/models",
-   "ok": false,
-   "items": 0,
-   "off": true
-  },
-  {
-   "id": "api-anthropic",
-   "vendor": "anthropic",
-   "name": "anthropic 모델 목록 API",
-   "kind": "api",
-   "url": "https://api.anthropic.com/v1/models",
-   "ok": false,
-   "items": 0,
-   "off": true
-  },
-  {
-   "id": "api-gemini",
-   "vendor": "google",
-   "name": "google 모델 목록 API",
-   "kind": "api",
-   "url": "https://generativelanguage.googleapis.com/v1beta/models",
-   "ok": false,
-   "items": 0,
-   "off": true
   }
  ]
 }

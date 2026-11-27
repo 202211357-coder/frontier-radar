@@ -20,9 +20,10 @@ import json
 import os
 import re
 import sys
+import time
 from email.utils import format_datetime, parsedate_to_datetime
 from pathlib import Path
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET  # rejects entity-expansion (billion laughs) payloads
 
 import requests
 
@@ -45,16 +46,6 @@ SOURCES = [
     # Anthropic has no news feed: watch article links on the news index
     {"id": "anthropic-news", "name": "Anthropic News", "vendor": "anthropic", "kind": "links", "url": "https://www.anthropic.com/news", "base": "https://www.anthropic.com"},
 ]
-# Optional: model-list APIs (only run when the key is set). New model IDs are the most reliable signal.
-MODEL_APIS = [
-    {"id": "api-openai", "vendor": "openai", "env": "OPENAI_API_KEY", "url": "https://api.openai.com/v1/models",
-     "headers": lambda k: {"Authorization": f"Bearer {k}"}, "ids": lambda j: [m["id"] for m in j.get("data", [])]},
-    {"id": "api-anthropic", "vendor": "anthropic", "env": "ANTHROPIC_API_KEY", "url": "https://api.anthropic.com/v1/models?limit=1000",
-     "headers": lambda k: {"x-api-key": k, "anthropic-version": "2023-06-01"}, "ids": lambda j: [m["id"] for m in j.get("data", [])]},
-    {"id": "api-gemini", "vendor": "google", "env": "GEMINI_API_KEY", "url": "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000",
-     "headers": lambda k: {"x-goog-api-key": k}, "ids": lambda j: [m["name"].split("/")[-1] for m in j.get("models", [])]},
-]
-
 MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December"
 DATE_RE = re.compile(rf"\b({MONTHS}) (\d{{1,2}}), (20\d\d)\b")
 NAME_RE = re.compile(
@@ -66,13 +57,38 @@ NAME_RE = re.compile(
 ACTION_RE = re.compile(r"introduc|launch|releas|now available|generally available|\bGA\b|preview|experimental|rolling out|new model"
                        r"|deprecat|retir|sunset|shut ?down|discontinu|routes? to|routing|removal|removed", re.I)
 RETIRE_RE = re.compile(r"deprecat|retir|sunset|shut ?down|discontinu|routes? to|routing|removal|removed", re.I)
-SKIP_ID_RE = re.compile(r"(embedding|tts|whisper|moderation|dall-e|babbage|davinci|search|realtime-preview-\d{4})", re.I)
+
+
+MAX_BYTES = 8 * 1024 * 1024  # an official page or feed is far smaller; anything bigger is refused
 
 
 def get(url: str, **kw) -> requests.Response:
-    r = requests.get(url, headers={**UA, **kw.pop("headers", {})}, timeout=40, **kw)
+    if not url.startswith("https://"):
+        raise ValueError(f"refusing non-https url: {url[:80]}")
+    r = requests.get(url, headers={**UA, **kw.pop("headers", {})}, timeout=40, stream=True, **kw)
     r.raise_for_status()
+    body = b""
+    for chunk in r.iter_content(65536):
+        body += chunk
+        if len(body) > MAX_BYTES:
+            r.close()
+            raise ValueError(f"response over {MAX_BYTES} bytes: {url[:80]}")
+    r._content = body
     return r
+
+
+def safe_url(u: str | None) -> str | None:
+    """Only plain https links to the vendors' own sites reach the page."""
+    if not u or not re.match(r"^https://[A-Za-z0-9.-]+(/[^\s\"'<>]*)?$", u):
+        return None
+    host = u.split("/")[2].lower()
+    ok = ("openai.com", "anthropic.com", "claude.com", "google.com", "google", "deepmind.google", "blog.google", "googleblog.com")
+    return u if any(host == h or host.endswith("." + h) for h in ok) else None
+
+
+def clean(t: str, n: int) -> str:
+    """Plain text only: no control characters, bounded length."""
+    return re.sub(r"[\x00-\x1f\x7f]", " ", t or "").strip()[:n]
 
 
 def html_text(s: str) -> str:
@@ -149,33 +165,10 @@ def collect_links(src):
     return out
 
 
-def collect_model_apis():
-    out = []
-    for api in MODEL_APIS:
-        k = os.environ.get(api["env"])
-        if not k:
-            continue
-        try:
-            ids = api["ids"](get(api["url"], headers=api["headers"](k)).json())
-        except Exception as e:  # noqa: BLE001
-            print(f"[warn] {api['id']}: {e}", file=sys.stderr)
-            continue
-        for mid in ids:
-            if SKIP_ID_RE.search(mid):
-                continue
-            out.append({"key": key_of(api["id"], mid), "vendor": api["vendor"], "source": api["id"],
-                        "date": dt.datetime.now(KST).date().isoformat(), "title": f"API에 새 모델 ID: {mid}",
-                        "text": f"New model id {mid} is now listed in the {api['vendor']} models API (now available).",
-                        "url": "", "model": mid, "force": True})
-    return out
-
-
 COLLECT = {"dated": collect_dated, "rss": collect_rss, "links": collect_links}
 
 
 def relevant(c) -> bool:
-    if c.get("force"):
-        return True
     if c["source"] in ("openai-news", "google-ai", "deepmind", "anthropic-news"):
         # news feeds carry customer stories that mention models: the title itself must announce something
         return bool(NAME_RE.search(c["title"]) and ACTION_RE.search(c["title"]))
@@ -272,9 +265,9 @@ def to_event(c, info):
     ev = {
         "id": f"{c['vendor'][0]}-{slug(model)}-{c['date'][5:].replace('-', '')}",
         "date": c["date"], "vendor": c["vendor"], "type": typ, "model": model,
-        "title": c["title"][:120] if not info else f"{model} {'출시' if typ == 'launch' else '지원 중단·퇴역' if typ == 'retire' else '변경'}",
-        "summary": (info or {}).get("summary_ko") or c["text"][:180],
-        "status": "auto", "src": None, "url": c.get("url") or None,
+        "title": clean(c["title"], 120) if not info else f"{model} {'출시' if typ == 'launch' else '지원 중단·퇴역' if typ == 'retire' else '변경'}",
+        "summary": clean((info or {}).get("summary_ko") or c["text"], 240),
+        "status": "auto", "src": None, "url": safe_url(c.get("url")),
     }
     for k_src, k_dst in (("price", "price"), ("context", "context"), ("availability", "availability")):
         if info and info.get(k_src):
@@ -304,7 +297,7 @@ def merge(data, cands, enrich_on=True):
         while ev["id"] in ids:
             ev["id"] += "x"
         if ev["url"]:
-            data["sources"][ev["id"]] = {"title": c["title"][:120], "url": ev["url"]}
+            data["sources"][ev["id"]] = {"title": clean(c["title"], 120), "url": ev["url"]}
             ev["src"] = ev["id"]
         ev.pop("url")
         data["events"].append(ev)
@@ -420,21 +413,20 @@ def main():
     cands, errors, watch = [], [], []
     for src in SOURCES:
         row = {k: src[k] for k in ("id", "vendor", "name", "kind", "url")}
-        try:
-            got = COLLECT[src["kind"]](src)
-            cands += got
-            row.update(ok=True, items=len(got))
-        except Exception as e:  # noqa: BLE001
-            errors.append(f"{src['id']}: {e}")
-            row.update(ok=False, items=0, error=str(e)[:160])
+        for attempt in (1, 2, 3):  # official sites sometimes time out once; retry before calling it an error
+            try:
+                got = COLLECT[src["kind"]](src)
+                cands += got
+                row.update(ok=True, items=len(got))
+                row.pop("error", None)
+                break
+            except Exception as e:  # noqa: BLE001
+                row.update(ok=False, items=0, error=clean(str(e), 160))
+                if attempt == 3:
+                    errors.append(f"{src['id']}: {row['error']}")
+                else:
+                    time.sleep(5 * attempt)
         watch.append(row)
-    api = collect_model_apis()
-    cands += api
-    for a in MODEL_APIS:
-        on = bool(os.environ.get(a["env"]))
-        watch.append({"id": a["id"], "vendor": a["vendor"], "name": f"{a['vendor']} 모델 목록 API", "kind": "api",
-                      "url": a["url"].split("?")[0], "ok": on, "items": sum(c["source"] == a["id"] for c in api),
-                      **({} if on else {"off": True})})
     fresh = [c for c in cands if c["key"] not in seen]
     rel = [c for c in fresh if relevant(c)]
     print(f"collected {len(cands)} items, {len(fresh)} unseen, {len(rel)} model-related; errors: {errors or 'none'}")
