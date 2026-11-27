@@ -1,0 +1,1198 @@
+{
+ "updated": "2026-11-27",
+ "schedule": "3시간마다 자동 점검",
+ "vendors": {
+  "google": {
+   "name": "Google Gemini",
+   "short": "Google",
+   "intro": "Gemini 4 세대(Neon·Carbon·Hydrogen·Argon)와 Genie·Omni 같은 전용 모델"
+  },
+  "openai": {
+   "name": "OpenAI GPT",
+   "short": "OpenAI",
+   "intro": "GPT-6.x 세대의 Astra(최상위)·Sol(일상)·Terra(경량)와 특화 모델"
+  },
+  "anthropic": {
+   "name": "Anthropic Claude",
+   "short": "Anthropic",
+   "intro": "Claude Fable(최상위)·Opus·Sonnet·Haiku 5.x 라인업"
+  }
+ },
+ "sources": {
+  "fable52": {
+   "title": "Introducing Claude Fable 5.2 and Claude Mythos 5.2",
+   "url": "https://www.anthropic.com/news/claude-fable-and-mythos-5-2"
+  },
+  "opus55": {
+   "title": "Introducing Claude Opus 5.5",
+   "url": "https://www.anthropic.com/news/claude-opus-5-5"
+  },
+  "claudeRN": {
+   "title": "Claude Platform release notes",
+   "url": "https://platform.claude.com/docs/en/release-notes/overview"
+  },
+  "gpt62": {
+   "title": "Introducing GPT-6.2 Astra and Sol",
+   "url": "https://openai.com/index/introducing-gpt-6-2-astra-sol"
+  },
+  "oaiRN": {
+   "title": "ChatGPT/OpenAI Model Release Notes",
+   "url": "https://help.openai.com/en/articles/9624314-model-release-notes"
+  },
+  "neon": {
+   "title": "Introducing Gemini 4 Neon (Google blog)",
+   "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-neon/"
+  },
+  "neonDC": {
+   "title": "DataCamp: Gemini 4 Neon (Google 표 재구성)",
+   "url": "https://www.datacamp.com/ko/blog/gemini-4-neon"
+  },
+  "gemCL": {
+   "title": "Gemini API changelog",
+   "url": "https://aistudio.google.com/docs/changelog"
+  },
+  "carbon": {
+   "title": "Gemini 4 Carbon model page",
+   "url": "https://aistudio.google.com/docs/models/gemini-4-carbon"
+  }
+ },
+ "events": [
+  {
+   "id": "g-genie4",
+   "date": "2026-11-19",
+   "vendor": "google",
+   "type": "launch",
+   "model": "Genie 4",
+   "title": "Genie 4 월드 모델 API 공개",
+   "summary": "Interactions API GA. 720p/24fps 인터랙티브 월드 생성.",
+   "price": "$1.50 입력 / $9.00 텍스트 출력 / $17.50 비디오 출력 (1M 토큰)",
+   "status": "verified",
+   "src": "gemCL"
+  },
+  {
+   "id": "g-neon",
+   "date": "2026-11-18",
+   "vendor": "google",
+   "type": "launch",
+   "flagship": true,
+   "model": "Gemini 4 Neon",
+   "title": "Gemini 4 Neon 출시",
+   "summary": "Carbon 급 추론을 더 낮은 작업당 비용으로. AA Intelligence Index 61(xhigh, 3위). Gemini 앱에서 3.1 Pro를 대체.",
+   "price": "$3 / $15 (캐시 입력 $0.15)",
+   "context": "1M 토큰 · 동기 출력 65,536",
+   "availability": "Gemini API·AI Studio, Gemini 앱(Pro/Ultra), Antigravity",
+   "status": "verified",
+   "src": "neon"
+  },
+  {
+   "id": "g-31pro-retire",
+   "date": "2026-11-18",
+   "vendor": "google",
+   "type": "retire",
+   "model": "Gemini 3.1 Pro",
+   "title": "Gemini 3.1 Pro, 앱에서 Neon으로 교체",
+   "summary": "Gemini 앱 모델 교체 보도. API 퇴역일은 공식 미확인.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "g-hydrogen",
+   "date": "2026-11-12",
+   "vendor": "google",
+   "type": "launch",
+   "model": "Gemini 4 Hydrogen",
+   "title": "Gemini 4 Hydrogen GA",
+   "summary": "빠른 일상용 모델. xhigh thinking 추가, Antigravity 기본 모델.",
+   "price": "$1.50 / $7.50",
+   "status": "verified",
+   "src": "gemCL"
+  },
+  {
+   "id": "g-decision1",
+   "date": "2026-11-11",
+   "vendor": "google",
+   "type": "launch",
+   "model": "Gemini Decision 1",
+   "title": "Gemini Decision 1 + Decisions API",
+   "summary": "의사결정 특화 모델과 전용 API 공개.",
+   "status": "verified",
+   "src": "gemCL"
+  },
+  {
+   "id": "g-carbon",
+   "date": "2026-11-10",
+   "vendor": "google",
+   "type": "launch",
+   "flagship": true,
+   "model": "Gemini 4 Carbon",
+   "title": "Gemini 4 Carbon GA",
+   "summary": "심층 추론 모델. 저장소 단위 빌드·검증 루프, 문서 근거 정확도 강화.",
+   "price": "$2 / $10 (11-30까지) → $4 / $20 (12-01부터)",
+   "context": "1,048,576 토큰 · 롱 디코드",
+   "status": "verified",
+   "src": "carbon"
+  },
+  {
+   "id": "g-omni12",
+   "date": "2026-11-05",
+   "vendor": "google",
+   "type": "launch",
+   "model": "Gemini Omni 1.2 Flash",
+   "title": "Gemini Omni 1.2 Flash GA",
+   "summary": "비디오 출력 $12/1M. omni-1.1-flash는 12-03부터 1.2로 라우팅.",
+   "status": "verified",
+   "src": "gemCL"
+  },
+  {
+   "id": "g-25-route",
+   "date": "2026-11-02",
+   "vendor": "google",
+   "type": "retire",
+   "model": "gemini-2.5-pro / flash",
+   "title": "gemini-2.5-pro·flash 라우팅 공지",
+   "summary": "12-01부터 신규 모델로 라우팅.",
+   "status": "verified",
+   "src": "gemCL"
+  },
+  {
+   "id": "g-argon",
+   "date": "2026-10-13",
+   "vendor": "google",
+   "type": "launch",
+   "model": "Gemini 4 Argon",
+   "title": "Gemini 4 Argon GA",
+   "summary": "Carbon보다 턴당 사고 토큰이 적고 빠른 모델. Neon이 후속.",
+   "price": "$2 / $10 (11-30까지) → $4 / $20",
+   "status": "verified",
+   "src": "gemCL"
+  },
+  {
+   "id": "g-gemini4",
+   "date": "2026-09-30",
+   "vendor": "google",
+   "type": "launch",
+   "model": "Gemini 4",
+   "title": "Gemini 4 세대 공개",
+   "summary": "Gemini 4 제품군 발표.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "g-38flash",
+   "date": "2026-09-02",
+   "vendor": "google",
+   "type": "launch",
+   "model": "Gemini 3.8 Flash",
+   "title": "Gemini 3.8 Flash",
+   "summary": "Flash 계열 업데이트.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-health",
+   "date": "2026-11-24",
+   "vendor": "openai",
+   "type": "update",
+   "model": "Healthcare configs",
+   "title": "API 헬스케어 모델 구성",
+   "summary": "Astra·Sol을 의료 용도로 맞춘 구성, Responses API 제공.",
+   "status": "verified",
+   "src": "oaiRN"
+  },
+  {
+   "id": "o-62chat",
+   "date": "2026-11-23",
+   "vendor": "openai",
+   "type": "launch",
+   "model": "GPT-6.2 (Chat)",
+   "title": "ChatGPT Chat 탭에 GPT-6.2",
+   "summary": "GPT-6.2 Sol 기반. Plus/Pro/Business/Enterprise.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-56-retire",
+   "date": "2026-11-23",
+   "vendor": "openai",
+   "type": "retire",
+   "model": "GPT-5.6 Sol/Terra",
+   "title": "ChatGPT·Codex에서 GPT-5.6 퇴역 공지",
+   "summary": "12-23 적용. Chat은 Sol, Work·Codex는 Sol·Terra. API 언급 없음.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-live11",
+   "date": "2026-11-21",
+   "vendor": "openai",
+   "type": "launch",
+   "model": "GPT-Live-1.1",
+   "title": "GPT-Live-1.1 풀듀플렉스 음성",
+   "summary": "활성 $0.05/분 · 대기 $0.02/분.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-62",
+   "date": "2026-11-17",
+   "vendor": "openai",
+   "type": "launch",
+   "flagship": true,
+   "model": "GPT-6.2 Astra / Sol",
+   "title": "GPT-6.2 Astra·Sol 출시",
+   "summary": "Astra는 복잡한 전문 작업용, Sol은 일상용. 둘 다 더 적은 출력 토큰으로 더 나은 결과를 낸다고 발표.",
+   "price": "Astra $8 / $40 · Sol $2 / $10",
+   "context": "공식 페이지 미기재",
+   "availability": "API gpt-6.2-astra / gpt-6.2-sol, ChatGPT Work·Codex",
+   "status": "verified",
+   "src": "gpt62"
+  },
+  {
+   "id": "o-img2-retire",
+   "date": "2026-11-10",
+   "vendor": "openai",
+   "type": "retire",
+   "model": "gpt-image-2",
+   "title": "gpt-image-2 API 퇴역 공지",
+   "summary": "2027-02-10 종료.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-cyber",
+   "date": "2026-11-05",
+   "vendor": "openai",
+   "type": "launch",
+   "model": "GPT-6 Cyber",
+   "title": "GPT-6 Cyber",
+   "summary": "보안 특화 모델. gpt-5.5-cyber-preview는 2027-02-01 종료 공지.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-img26",
+   "date": "2026-11-04",
+   "vendor": "openai",
+   "type": "launch",
+   "model": "GPT Image 2.6",
+   "title": "GPT Image 2.6",
+   "summary": "이미지 생성 모델 업데이트.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-rosalind",
+   "date": "2026-10-30",
+   "vendor": "openai",
+   "type": "launch",
+   "model": "GPT-6 Rosalind Research",
+   "title": "GPT-6 Rosalind Research (제한 공개)",
+   "summary": "승인된 연구 고객 한정, Work·Codex·API(gpt-6-rosalind). Chat 탭 미제공.",
+   "status": "verified",
+   "src": "oaiRN"
+  },
+  {
+   "id": "o-terra61",
+   "date": "2026-10-26",
+   "vendor": "openai",
+   "type": "launch",
+   "model": "GPT-6.1 Terra",
+   "title": "GPT-6.1 Terra",
+   "summary": "시각 추론·컴퓨터 사용·글쓰기. API와 ChatGPT Work·Codex.",
+   "price": "$1 / $5 (캐시 $0.05)",
+   "status": "verified",
+   "src": "oaiRN"
+  },
+  {
+   "id": "o-55-retire",
+   "date": "2026-10-14",
+   "vendor": "openai",
+   "type": "retire",
+   "model": "GPT-5.5",
+   "title": "ChatGPT에서 GPT-5.5 퇴역",
+   "summary": "ChatGPT·Work·Codex에서 제거, API는 영향 없음.",
+   "status": "verified",
+   "src": "oaiRN"
+  },
+  {
+   "id": "o-sol61",
+   "date": "2026-09-29",
+   "vendor": "openai",
+   "type": "launch",
+   "model": "GPT-6.1 Sol",
+   "title": "GPT-6.1 Sol",
+   "summary": "Sol 업데이트.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-6sol",
+   "date": "2026-09-22",
+   "vendor": "openai",
+   "type": "launch",
+   "model": "GPT-6 Sol / Luna",
+   "title": "GPT-6 Sol·Luna",
+   "summary": "GPT-6 경량 라인업.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "o-6astra",
+   "date": "2026-09-03",
+   "vendor": "openai",
+   "type": "launch",
+   "flagship": true,
+   "model": "GPT-6 Astra",
+   "title": "GPT-6 Astra",
+   "summary": "GPT-6 세대 플래그십.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "a-opus45-dep",
+   "date": "2026-11-23",
+   "vendor": "anthropic",
+   "type": "retire",
+   "model": "Claude Opus 4.5",
+   "title": "Claude Opus 4.5 지원 중단 공지",
+   "summary": "API 퇴역 2027-01-22. 대체: claude-opus-5-5.",
+   "status": "verified",
+   "src": "claudeRN"
+  },
+  {
+   "id": "a-fable52",
+   "date": "2026-11-09",
+   "vendor": "anthropic",
+   "type": "launch",
+   "flagship": true,
+   "model": "Claude Fable 5.2 / Mythos 5.2",
+   "title": "Claude Fable 5.2·Mythos 5.2 출시",
+   "summary": "코딩·추론·비전 강화, 출력 최대 30% 빠름, 안전장치 오탐 약 55% 감소. Mythos는 인증 조직 한정.",
+   "price": "$8 / $40 (fast mode $16 / $80)",
+   "context": "1M 토큰 · 최대 출력 128k",
+   "availability": "claude-fable-5-2, 전 플랫폼(AWS·Google Cloud·Azure)",
+   "status": "verified",
+   "src": "fable52"
+  },
+  {
+   "id": "a-opus48fast",
+   "date": "2026-10-30",
+   "vendor": "anthropic",
+   "type": "retire",
+   "model": "Opus 4.8 fast mode",
+   "title": "Opus 4.8 fast mode 제거 공지",
+   "summary": "11-30 제거. 대체: Opus 5.5.",
+   "status": "verified",
+   "src": "claudeRN"
+  },
+  {
+   "id": "a-haiku55",
+   "date": "2026-10-07",
+   "vendor": "anthropic",
+   "type": "launch",
+   "model": "Claude Haiku 5.5",
+   "title": "Claude Haiku 5.5",
+   "summary": "5.5 세대 경량 모델.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "a-sonnet45-dep",
+   "date": "2026-09-30",
+   "vendor": "anthropic",
+   "type": "retire",
+   "model": "Claude Sonnet 4.5",
+   "title": "Claude Sonnet 4.5 퇴역 공지",
+   "summary": "API 퇴역 11-30. 대체: Sonnet 5.5.",
+   "status": "verified",
+   "src": "claudeRN"
+  },
+  {
+   "id": "a-sonnet55",
+   "date": "2026-09-28",
+   "vendor": "anthropic",
+   "type": "launch",
+   "model": "Claude Sonnet 5.5",
+   "title": "Claude Sonnet 5.5",
+   "summary": "5.5 세대 중형 모델.",
+   "status": "record",
+   "src": null
+  },
+  {
+   "id": "a-opus55",
+   "date": "2026-09-22",
+   "vendor": "anthropic",
+   "type": "launch",
+   "flagship": true,
+   "model": "Claude Opus 5.5",
+   "title": "Claude Opus 5.5 출시",
+   "summary": "Opus 5 대비 큰 폭 향상, 기본 설정에서 비용 40% 절감·출력 30% 이상 빠름. thinking 끄기 불가.",
+   "price": "$4 / $20 (Opus 5: $5 / $25)",
+   "context": "1M 토큰",
+   "availability": "claude-opus-5-5, 전 플랫폼",
+   "status": "verified",
+   "src": "opus55"
+  },
+  {
+   "id": "a-fable51",
+   "date": "2026-09-01",
+   "vendor": "anthropic",
+   "type": "launch",
+   "model": "Claude Fable 5.1",
+   "title": "Claude Fable 5.1",
+   "summary": "Fable 5 업데이트.",
+   "status": "record",
+   "src": null
+  }
+ ],
+ "upcoming": [
+  {
+   "date": "2026-11-30",
+   "vendor": "google",
+   "title": "Gemini 4 Carbon·Argon 프로모션가 종료",
+   "detail": "12-01부터 $4 / $20 (2배)",
+   "src": "carbon"
+  },
+  {
+   "date": "2026-11-30",
+   "vendor": "anthropic",
+   "title": "Claude Sonnet 4.5 API 퇴역",
+   "detail": "Sonnet 5.5로 이전",
+   "src": "claudeRN"
+  },
+  {
+   "date": "2026-11-30",
+   "vendor": "anthropic",
+   "title": "Opus 4.8 fast mode 제거",
+   "detail": "Opus 5.5로 이전",
+   "src": "claudeRN"
+  },
+  {
+   "date": "2026-12-01",
+   "vendor": "google",
+   "title": "gemini-2.5-pro·flash 라우팅",
+   "detail": "신규 모델로 자동 전환",
+   "src": "gemCL"
+  },
+  {
+   "date": "2026-12-03",
+   "vendor": "google",
+   "title": "gemini-omni-1.1-flash → 1.2",
+   "detail": "자동 라우팅",
+   "src": "gemCL"
+  },
+  {
+   "date": "2026-12-23",
+   "vendor": "openai",
+   "title": "ChatGPT·Codex GPT-5.6 퇴역",
+   "detail": "Chat: Sol / Work·Codex: Sol·Terra",
+   "src": null
+  },
+  {
+   "date": "2027-01-22",
+   "vendor": "anthropic",
+   "title": "Claude Opus 4.5 API 퇴역",
+   "detail": "claude-opus-5-5로 이전",
+   "src": "claudeRN"
+  },
+  {
+   "date": "2027-02-01",
+   "vendor": "openai",
+   "title": "gpt-5.5-cyber-preview 종료",
+   "detail": "GPT-6 Cyber로 이전",
+   "src": null
+  },
+  {
+   "date": "2027-02-10",
+   "vendor": "openai",
+   "title": "gpt-image-2 API 종료",
+   "detail": "GPT Image 2.6으로 이전",
+   "src": null
+  }
+ ],
+ "flagships": [
+  {
+   "vendor": "anthropic",
+   "model": "Claude Fable 5.2",
+   "date": "2026-11-09",
+   "prev": "Fable 5.1",
+   "in": 8,
+   "out": 40,
+   "ctx": "1M / 출력 128k",
+   "src": "fable52",
+   "pairs": [
+    [
+     "FrontierCode 2.0",
+     "xhigh",
+     32.4,
+     49.1
+    ],
+    [
+     "FrontierSWE v2",
+     "최고 effort",
+     56.3,
+     69.9
+    ],
+    [
+     "AutomationBench",
+     "최고 effort",
+     31.4,
+     51.4
+    ],
+    [
+     "Terminal-Bench-Science 0.1",
+     "최고 effort",
+     52.6,
+     74.6
+    ],
+    [
+     "OSWorld 2.1 (partial)",
+     "최고 effort",
+     83.5,
+     89.3
+    ],
+    [
+     "Humanity's Last Exam (도구)",
+     "최고 effort",
+     65.6,
+     74.2
+    ],
+    [
+     "Chartography (도구 없음)",
+     "최고 effort",
+     44.8,
+     73.4
+    ],
+    [
+     "BenchCAD 2.1",
+     "max",
+     44.4,
+     83.5
+    ]
+   ],
+   "notes": [
+    "출력 속도 최대 30% 향상",
+    "안전장치 오탐 약 55% 감소",
+    "Medium effort에서 5.1보다 적은 토큰으로 완료"
+   ]
+  },
+  {
+   "vendor": "anthropic",
+   "model": "Claude Opus 5.5",
+   "date": "2026-09-22",
+   "prev": "Opus 5",
+   "in": 4,
+   "out": 20,
+   "ctx": "1M",
+   "src": "opus55",
+   "pairs": [
+    [
+     "Terminal-Bench 4.0",
+     "xhigh",
+     52.3,
+     66.4
+    ],
+    [
+     "FrontierCode v1.1",
+     "max",
+     48.0,
+     54.4
+    ],
+    [
+     "CursorBench 4.0",
+     "max",
+     46.6,
+     57.8
+    ],
+    [
+     "AutomationBench",
+     "max",
+     26.9,
+     40.0
+    ],
+    [
+     "Terminal-Bench-Science 0.1",
+     "max",
+     29.0,
+     58.7
+    ],
+    [
+     "OSWorld 2.1 (partial)",
+     "max",
+     74.0,
+     81.8
+    ]
+   ],
+   "notes": [
+    "가격 $5/$25 → $4/$20",
+    "기본 설정 기준 비용 40% 절감",
+    "출력 30% 이상 빠름"
+   ]
+  },
+  {
+   "vendor": "openai",
+   "model": "GPT-6.2 Astra",
+   "date": "2026-11-17",
+   "prev": "GPT-6 Astra",
+   "in": 8,
+   "out": 40,
+   "ctx": "미기재",
+   "src": "gpt62",
+   "deltas": [
+    [
+     "Agents' Last Exam",
+     "+5.2pt",
+     "비용 1/3 미만"
+    ],
+    [
+     "Terminal-Bench-Science 0.1",
+     "+9pt",
+     "비용 1/3 미만"
+    ],
+    [
+     "GDPval v2",
+     "+6.2pt",
+     "출력 토큰 22% 감소"
+    ],
+    [
+     "API 가격",
+     "−20%",
+     "캐시 입력 −60%"
+    ]
+   ],
+   "notes": [
+    "AA-3D Elo 1,318 (1위, Artificial Analysis)",
+    "ARC-AGI-3 100% 첫 달성(보도)",
+    "사이버보안 Critical 등급, 안전장치 강화"
+   ]
+  },
+  {
+   "vendor": "openai",
+   "model": "GPT-6.2 Sol",
+   "date": "2026-11-17",
+   "prev": "GPT-6.1 Sol",
+   "in": 2,
+   "out": 10,
+   "ctx": "미기재",
+   "src": "gpt62",
+   "deltas": [
+    [
+     "GDPval v2",
+     "+5.3pt",
+     "가격 동일"
+    ],
+    [
+     "FrontierCode 2.0",
+     "Astra와 0.5pt 차",
+     "비용 약 1/5 (둘 다 max)"
+    ]
+   ],
+   "notes": [
+    "LifeVal에서 GPT-6 Astra를 약 1/7 비용으로 앞섬"
+   ]
+  },
+  {
+   "vendor": "google",
+   "model": "Gemini 4 Neon",
+   "date": "2026-11-18",
+   "prev": "Gemini 4 Carbon",
+   "in": 3,
+   "out": 15,
+   "ctx": "1M / 동기 출력 65,536",
+   "src": "neon",
+   "deltas": [
+    [
+     "작업당 비용",
+     "−32%",
+     "기본 high 기준"
+    ],
+    [
+     "ExploitGym",
+     "동급 성능",
+     "토큰 절반"
+    ],
+    [
+     "CWE-Bench v2",
+     "70.7%",
+     "Carbon 대비 +3.4%"
+    ],
+    [
+     "SEC-bench Pro",
+     "90.5%",
+     "도전당 비용 약 절반"
+    ]
+   ],
+   "notes": [
+    "AA Intelligence Index 61 (xhigh, 3위)",
+    "Agentic 평가 과잉 행동 13–35% 감소",
+    "thinking: low/medium/high(기본)/xhigh"
+   ]
+  }
+ ],
+ "benchTables": [
+  {
+   "id": "t-fable",
+   "label": "Anthropic 발표 · Fable 5.2",
+   "src": "fable52",
+   "note": "표기 없으면 각 모델 최고 effort. 페이지 텍스트에서 열 순서를 재구성. FrontierCode의 Carbon은 Medium effort.",
+   "models": [
+    [
+     "Claude Fable 5.2",
+     "anthropic"
+    ],
+    [
+     "Claude Fable 5.1",
+     "anthropic"
+    ],
+    [
+     "Claude Opus 5.5",
+     "anthropic"
+    ],
+    [
+     "GPT-6 Astra",
+     "openai"
+    ],
+    [
+     "Gemini 4 Carbon",
+     "google"
+    ]
+   ],
+   "rows": [
+    [
+     "FrontierCode 2.0",
+     "%",
+     [
+      49.1,
+      32.4,
+      45.5,
+      42.8,
+      41.1
+     ]
+    ],
+    [
+     "FrontierSWE v2",
+     "%",
+     [
+      69.9,
+      56.3,
+      62.3,
+      65.5,
+      61.2
+     ]
+    ],
+    [
+     "AutomationBench",
+     "%",
+     [
+      51.4,
+      31.4,
+      42.5,
+      41.4,
+      53.9
+     ]
+    ],
+    [
+     "Terminal-Bench-Science 0.1",
+     "%",
+     [
+      74.6,
+      52.6,
+      58.7,
+      68.1,
+      64.8
+     ]
+    ],
+    [
+     "OSWorld 2.1 (partial)",
+     "%",
+     [
+      89.3,
+      83.5,
+      87.2,
+      79.5,
+      81.5
+     ]
+    ],
+    [
+     "RoboDojo Sim",
+     "%",
+     [
+      64.9,
+      27.6,
+      39.4,
+      29.8,
+      null
+     ]
+    ],
+    [
+     "Remote Labor Index",
+     "%",
+     [
+      41.3,
+      17.9,
+      21.3,
+      20.8,
+      null
+     ]
+    ],
+    [
+     "Humanity's Last Exam (도구)",
+     "%",
+     [
+      74.2,
+      65.6,
+      67.7,
+      57.2,
+      null
+     ]
+    ],
+    [
+     "Chartography (도구 없음)",
+     "%",
+     [
+      73.4,
+      44.8,
+      64.4,
+      71.0,
+      72.5
+     ]
+    ],
+    [
+     "AA-Briefcase v1.1",
+     "%",
+     [
+      66.1,
+      61.5,
+      61.2,
+      52.0,
+      61.8
+     ]
+    ]
+   ],
+   "vendor": "anthropic"
+  },
+  {
+   "id": "t-neon",
+   "label": "Google 발표 · Gemini 4 Neon",
+   "src": "neonDC",
+   "note": "Google 원본 표는 이미지. DataCamp 재구성 값이며 Neon 값은 OfficeChai와 일치. 비교 모델의 thinking 설정은 미공개.",
+   "models": [
+    [
+     "Gemini 4 Neon",
+     "google"
+    ],
+    [
+     "Claude Opus 5.5",
+     "anthropic"
+    ],
+    [
+     "GPT-6.2 Sol",
+     "openai"
+    ]
+   ],
+   "rows": [
+    [
+     "AA Intelligence Index v5.0.1",
+     "점",
+     [
+      61,
+      59,
+      57
+     ]
+    ],
+    [
+     "Vals Index v2.2",
+     "%",
+     [
+      70.9,
+      70.1,
+      66.1
+     ]
+    ],
+    [
+     "AutomationBench",
+     "%",
+     [
+      56.3,
+      42.5,
+      41.3
+     ]
+    ],
+    [
+     "Agents' Last Exam v1.1",
+     "%",
+     [
+      75.8,
+      71.6,
+      73.0
+     ]
+    ],
+    [
+     "GraphWalks 256K–1M",
+     "%",
+     [
+      95.2,
+      66.8,
+      80.1
+     ]
+    ],
+    [
+     "Terminal-Bench 4.1",
+     "%",
+     [
+      65.2,
+      65.8,
+      61.5
+     ]
+    ],
+    [
+     "FrontierCode 2.0",
+     "%",
+     [
+      46.2,
+      47.3,
+      43.8
+     ]
+    ],
+    [
+     "Terminal-Bench-Science 0.1",
+     "%",
+     [
+      70.5,
+      63.3,
+      68.0
+     ]
+    ],
+    [
+     "HLE-Diamond",
+     "%",
+     [
+      71.3,
+      67.9,
+      64.0
+     ]
+    ],
+    [
+     "Chartography",
+     "%",
+     [
+      73.5,
+      66.3,
+      75.1
+     ]
+    ],
+    [
+     "LVBench",
+     "%",
+     [
+      89.0,
+      83.7,
+      87.6
+     ]
+    ],
+    [
+     "CWE-Bench v2",
+     "%",
+     [
+      70.7,
+      67.1,
+      66.0
+     ]
+    ]
+   ],
+   "vendor": "google"
+  },
+  {
+   "id": "t-opus",
+   "label": "Anthropic 발표 · Opus 5.5",
+   "src": "opus55",
+   "note": "Opus 5.5는 adaptive thinking max effort(Terminal-Bench 4.0은 xhigh, GPT-6 Astra는 OpenAI 보고 high). AutomationBench는 Zapier가 폴백 없이 실행.",
+   "models": [
+    [
+     "Claude Opus 5.5",
+     "anthropic"
+    ],
+    [
+     "Claude Fable 5.1",
+     "anthropic"
+    ],
+    [
+     "Claude Opus 5",
+     "anthropic"
+    ],
+    [
+     "GPT-6 Astra",
+     "openai"
+    ],
+    [
+     "GPT-5.6 Sol",
+     "openai"
+    ]
+   ],
+   "rows": [
+    [
+     "Terminal-Bench 4.0",
+     "%",
+     [
+      66.4,
+      55.8,
+      52.3,
+      57.9,
+      37.3
+     ]
+    ],
+    [
+     "FrontierCode v1.1",
+     "%",
+     [
+      54.4,
+      50.3,
+      48.0,
+      53.3,
+      47.5
+     ]
+    ],
+    [
+     "CursorBench 4.0",
+     "%",
+     [
+      57.8,
+      51.8,
+      46.6,
+      null,
+      41.7
+     ]
+    ],
+    [
+     "AutomationBench",
+     "%",
+     [
+      40.0,
+      31.4,
+      26.9,
+      41.4,
+      28.8
+     ]
+    ],
+    [
+     "Humanity's Last Exam (도구)",
+     "%",
+     [
+      67.7,
+      65.6,
+      63.6,
+      57.2,
+      null
+     ]
+    ],
+    [
+     "Terminal-Bench-Science 0.1",
+     "%",
+     [
+      58.7,
+      52.6,
+      29.0,
+      64.6,
+      22.4
+     ]
+    ],
+    [
+     "GDPval-AA v2.1",
+     "Elo",
+     [
+      1846,
+      1735,
+      1708,
+      1542,
+      1588
+     ]
+    ]
+   ],
+   "vendor": "anthropic"
+  },
+  {
+   "id": "t-gpt",
+   "label": "OpenAI 발표 · GPT-6.2",
+   "src": "gpt62",
+   "note": "OpenAI 페이지의 표는 이미지 차트라 텍스트로 확인된 수치만 표시. AA-3D는 Artificial Analysis의 사람 선호 Elo.",
+   "models": [
+    [
+     "GPT-6.2 Astra",
+     "openai"
+    ],
+    [
+     "Claude Fable 5.2",
+     "anthropic"
+    ],
+    [
+     "GPT-6.2 Sol",
+     "openai"
+    ]
+   ],
+   "rows": [
+    [
+     "AA-3D arena",
+     "Elo",
+     [
+      1318,
+      1271,
+      1259
+     ]
+    ]
+   ],
+   "vendor": "openai"
+  }
+ ],
+ "prices": [
+  [
+   "Claude Fable 5.2",
+   "anthropic",
+   8,
+   40
+  ],
+  [
+   "Claude Opus 5.5",
+   "anthropic",
+   4,
+   20
+  ],
+  [
+   "GPT-6.2 Astra",
+   "openai",
+   8,
+   40
+  ],
+  [
+   "GPT-6.2 Sol",
+   "openai",
+   2,
+   10
+  ],
+  [
+   "GPT-6.1 Terra",
+   "openai",
+   1,
+   5
+  ],
+  [
+   "Gemini 4 Neon",
+   "google",
+   3,
+   15
+  ],
+  [
+   "Gemini 4 Carbon",
+   "google",
+   2,
+   10
+  ],
+  [
+   "Gemini 4 Hydrogen",
+   "google",
+   1.5,
+   7.5
+  ]
+ ],
+ "checked": "2026-11-27 10:58 KST",
+ "errors": []
+}
