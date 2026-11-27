@@ -6,7 +6,6 @@ Gemini · GPT · Claude의 새 모델 출시와 퇴역 공지를 추적하는 �
 GitHub Actions (3시간마다)
   └─ tracker/track.py ── 공식 changelog·릴리스 노트·뉴스 피드 수집
         ├─ 새 항목 판별 (tracker/state.json에 본 항목 기록)
-        ├─ (선택) Claude API로 요약·가격·벤치마크 표 추출
         ├─ site/data.json, site/feed.xml 갱신 → 커밋
         └─ 알림: ntfy 푸시 / 텔레그램 / 디스코드·슬랙 웹훅
   └─ GitHub Pages로 site/ 배포
@@ -38,7 +37,6 @@ GitHub Actions (3시간마다)
    | `NTFY_TOPIC` | Secret | 알림 쓰려면 | ntfy 앱에서 구독할 토픽 이름. 다른 사람이 추측 못 하게 길고 무작위로 |
    | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Secret | 선택 | 텔레그램 봇 알림 |
    | `WEBHOOK_URL` | Secret | 선택 | 디스코드·슬랙 웹훅 |
-   | `ANTHROPIC_API_KEY` | Secret | 선택 | 새 항목의 요약·벤치마크 표 자동 추출. 없으면 원문 첫 문장만 씁니다 |
 
 4. 휴대폰에 **ntfy** 앱(Android/iOS)을 설치하고 3번의 토픽을 구독합니다.
 5. **Actions → track-frontier-models → Run workflow**로 한 번 실행해 봅니다.
@@ -49,7 +47,7 @@ GitHub Actions (3시간마다)
 
 ```bash
 pip install -r tracker/requirements.txt
-python tracker/track.py --dry-run --no-llm   # 무엇이 새로 잡히는지만 확인
+python tracker/track.py --dry-run            # 무엇이 새로 잡히는지만 확인
 python tracker/track.py --bootstrap          # 현재 상태를 기준점으로 다시 저장 (알림 없음)
 python -m http.server -d site 8000           # 로컬에서 사이트 보기 (CSP 없이)
 python tracker/harden.py site/index.html     # 배포 때 자동 실행: CSP 삽입 (커밋하지 마세요)
@@ -77,6 +75,6 @@ python tracker/harden.py site/index.html     # 배포 때 자동 실행: CSP 삽
 ## 한계
 
 - 공식 페이지 구조가 바뀌면 해당 출처의 수집이 끊깁니다. 이때 `data.json`의 `errors`에 이유가 남습니다.
-- API 키가 없으면 요약은 원문 첫 문장이고 벤치마크 표는 자동으로 채워지지 않습니다.
+- 자동으로 추가된 항목의 요약은 공식 페이지의 원문 첫 문장(영어)이고, 가격·벤치마크는 채워지지 않습니다. 필요하면 `data.json`을 직접 고쳐 `status`를 `verified`로 바꾸세요.
 - 벤치마크는 각 회사 발표 수치이며, effort·하니스 조건이 서로 다를 수 있습니다.
 - GitHub 예약 실행은 몇 분에서 수십 분 늦게 돌 수 있고, 60일 동안 저장소 활동이 없으면 일시 중지됩니다.

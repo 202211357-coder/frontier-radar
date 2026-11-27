@@ -180,104 +180,24 @@ def norm(model: str) -> str:
     return re.sub(r"[^a-z0-9]", "", model.lower().replace("claude", "").replace("gemini", "gem"))
 
 
-# ---------------------------------------------------------------- optional enrichment with Claude
-def enrich(c):
-    """Use Claude to turn an announcement into structured data. Skipped when ANTHROPIC_API_KEY is unset."""
-    if not os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("RADAR_NO_LLM"):
-        return None
-    try:
-        import anthropic
-        from pydantic import BaseModel
-        from typing import Literal
-
-        class Score(BaseModel):
-            model: str
-            value: float
-
-        class Bench(BaseModel):
-            name: str
-            setting: str
-            unit: Literal["%", "점", "Elo"]
-            scores: list[Score]
-
-        class Release(BaseModel):
-            is_model_news: bool
-            model: str
-            type: Literal["launch", "retire", "update"]
-            flagship: bool
-            summary_ko: str
-            price: str
-            context: str
-            availability: str
-            previous_model: str
-            improvements_ko: list[str]
-            future_dates: list[str]
-            benchmarks: list[Bench]
-
-        page = c["text"]
-        if c.get("url") and c["source"] not in ("gem-changelog", "claude-rn", "openai-rn"):
-            try:
-                page = html_text(get(c["url"]).text)[:80000]
-            except Exception:  # noqa: BLE001
-                pass
-        client = anthropic.Anthropic()
-        resp = client.beta.messages.parse(
-            model="claude-opus-5-5",
-            max_tokens=16000,
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
-            output_config={"effort": "low"},
-            system=(
-                "You extract facts about AI model releases from an official announcement for a Korean tracking site. "
-                "Use only what the text states. Leave a string empty and a list empty when the text does not say it; "
-                "never estimate or recall numbers from memory. is_model_news is true only for a new model or version, "
-                "a preview, or a deprecation/retirement/routing notice; false for product features, pricing plans, "
-                "research or customer stories. summary_ko is one Korean sentence. improvements_ko are short Korean "
-                "phrases versus the previous model, with numbers as stated. future_dates are YYYY-MM-DD dates of "
-                "scheduled retirements, routings or price changes. benchmarks copy the published table: benchmark "
-                "name, effort/thinking setting as stated (empty if none), unit, and one score per model column."
-            ),
-            messages=[{"role": "user", "content": f"Source: {c['url']}\nTitle: {c['title']}\n\n{page}"}],
-            output_format=Release,
-        )
-        if resp.stop_reason == "refusal" or resp.parsed_output is None:
-            return None
-        return resp.parsed_output.model_dump()
-    except Exception as e:  # noqa: BLE001
-        print(f"[warn] enrichment failed for {c['title'][:60]}: {e}", file=sys.stderr)
-        return None
-
-
 # ---------------------------------------------------------------- merge into site data
 def slug(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")[:48]
 
 
-def vendor_of(name: str, default: str) -> str:
-    n = name.lower()
-    return "openai" if re.search(r"gpt|\bo\d", n) else "google" if re.search(r"gemini|gemma|genie|veo|imagen", n) \
-        else "anthropic" if re.search(r"claude|opus|sonnet|haiku|fable|mythos", n) else default
-
-
-def to_event(c, info):
-    model = (info or {}).get("model") or c.get("model") or (NAME_RE.search(c["title"] + " " + c["text"]) or [c["title"]])[0]
-    typ = (info or {}).get("type") or ("retire" if RETIRE_RE.search(c["title"] + " " + c["text"][:300]) else "launch")
-    ev = {
+def to_event(c):
+    model = (NAME_RE.search(c["title"] + " " + c["text"]) or [c["title"]])[0]
+    typ = "retire" if RETIRE_RE.search(c["title"] + " " + c["text"][:300]) else "launch"
+    return {
         "id": f"{c['vendor'][0]}-{slug(model)}-{c['date'][5:].replace('-', '')}",
-        "date": c["date"], "vendor": c["vendor"], "type": typ, "model": model,
-        "title": clean(c["title"], 120) if not info else f"{model} {'출시' if typ == 'launch' else '지원 중단·퇴역' if typ == 'retire' else '변경'}",
-        "summary": clean((info or {}).get("summary_ko") or c["text"], 240),
+        "date": c["date"], "vendor": c["vendor"], "type": typ, "model": clean(model, 80),
+        "title": clean(c["title"], 120),
+        "summary": clean(c["text"], 240),
         "status": "auto", "src": None, "url": safe_url(c.get("url")),
     }
-    for k_src, k_dst in (("price", "price"), ("context", "context"), ("availability", "availability")):
-        if info and info.get(k_src):
-            ev[k_dst] = info[k_src]
-    if info and info.get("flagship"):
-        ev["flagship"] = True
-    return ev
 
 
-def merge(data, cands, enrich_on=True):
+def merge(data, cands):
     added = []
     known = [(e["vendor"], norm(e["model"]), e["date"]) for e in data["events"]]
 
@@ -288,10 +208,7 @@ def merge(data, cands, enrich_on=True):
                    for v, b, d in known if b)
     ids = {e["id"] for e in data["events"]}
     for c in sorted(cands, key=lambda x: x["date"]):
-        info = enrich(c) if enrich_on else None
-        if info is not None and not info["is_model_news"]:
-            continue
-        ev = to_event(c, info)
+        ev = to_event(c)
         if dup(ev):
             continue
         while ev["id"] in ids:
@@ -304,49 +221,11 @@ def merge(data, cands, enrich_on=True):
         ids.add(ev["id"])
         known.append((ev["vendor"], norm(ev["model"]), ev["date"]))
         added.append(ev)
-
-        dates = (info or {}).get("future_dates") or [iso(m) for m in DATE_RE.finditer(c["text"]) if iso(m) > c["date"]]
-        if ev["type"] == "retire":
-            for d in sorted(set(dates))[:2]:
-                data["upcoming"].append({"date": d, "vendor": ev["vendor"], "title": f"{ev['model']} 변경 적용", "detail": ev["summary"][:80], "src": ev["src"]})
-        if info and info.get("benchmarks"):
-            add_bench(data, ev, info)
+        if ev["type"] == "retire":  # a dated deadline in a retirement notice becomes an upcoming item
+            for d in sorted({iso(m) for m in DATE_RE.finditer(c["text"]) if iso(m) > c["date"]})[:2]:
+                data["upcoming"].append({"date": d, "vendor": ev["vendor"], "title": f"{ev['model']} 변경 적용",
+                                         "detail": ev["summary"][:80], "src": ev["src"]})
     return added
-
-
-def add_bench(data, ev, info):
-    benches = [b for b in info["benchmarks"] if b["scores"]]
-    if len(benches) < 2:
-        return
-    models = []
-    for b in benches:
-        for s in b["scores"]:
-            if s["model"] not in models:
-                models.append(s["model"])
-    models = models[:6]
-    rows = [[b["name"] + (f" ({b['setting']})" if b["setting"] else ""), b["unit"],
-             [next((s["value"] for s in b["scores"] if s["model"] == m), None) for m in models]] for b in benches[:14]]
-    data["benchTables"].insert(0, {"id": "t-" + ev["id"], "label": f"{data['vendors'][ev['vendor']]['short']} 발표 · {ev['model']}",
-                                   "src": ev["src"], "vendor": ev["vendor"],
-                                   "note": "자동 추출(검증 전). 원문 표와 대조해 확인하세요.",
-                                   "models": [[m, vendor_of(m, ev["vendor"])] for m in models], "rows": rows})
-    prev = info.get("previous_model")
-    pairs = []
-    if prev:
-        for b in benches:
-            now = next((s["value"] for s in b["scores"] if s["model"].lower() == ev["model"].lower()), None)
-            old = next((s["value"] for s in b["scores"] if s["model"].lower() == prev.lower()), None)
-            if now is not None and old is not None and b["unit"] == "%":
-                pairs.append([b["name"], b["setting"] or "-", old, now])
-    if ev.get("flagship"):
-        f = {"vendor": ev["vendor"], "model": ev["model"], "date": ev["date"], "prev": prev or "-", "ctx": ev.get("context", "-"),
-             "src": ev["src"], "notes": info.get("improvements_ko", [])[:4]}
-        m = re.findall(r"\$([\d.]+)", ev.get("price", ""))
-        if len(m) >= 2:
-            f["in"], f["out"] = float(m[0]), float(m[1])
-        if pairs:
-            f["pairs"] = pairs[:8]
-        data["flagships"].insert(0, f)
 
 
 # ---------------------------------------------------------------- outputs
@@ -401,7 +280,6 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--bootstrap", action="store_true", help="remember current items without adding events")
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--no-llm", action="store_true", help="skip Claude enrichment")
     args = ap.parse_args()
     site_url = os.environ.get("SITE_URL", "")
 
@@ -435,7 +313,7 @@ def main():
     if not bootstrap:
         cutoff = (dt.datetime.now(KST).date() - dt.timedelta(days=21)).isoformat()
         rel = [c for c in rel if c["date"] >= cutoff]  # an old page section that just appeared is not news
-        added = merge(data, rel, enrich_on=not args.no_llm)
+        added = merge(data, rel)
     for e in added:
         print(f"  + {e['date']} [{e['vendor']}] {e['type']}: {e['title']}")
 

@@ -161,7 +161,7 @@ function renderWatch() {
 function renderNews() {
   $$('#nf-r button').forEach(b => b.setAttribute('aria-pressed', b.dataset.nr === nf.r));
   $$('#nf-v button').forEach(b => b.setAttribute('aria-pressed', b.dataset.nv === nf.v));
-  $('#nf-t').value = nf.t;
+  setDrop(nf.t);
   const q = nf.q.trim().toLowerCase();
   const list = D.events.filter(e => want(e) && (nf.r === 'all' || isNew(e)) && (!nf.v || e.vendor === nf.v) && (!nf.t || e.type === nf.t) && (!q || (e.model + ' ' + e.title + ' ' + e.summary).toLowerCase().includes(q))).sort(byDate);
   const shown = nAll ? list : list.slice(0, 15); let h = '', m = '';
@@ -271,7 +271,59 @@ document.addEventListener('click', ev => {
   else if (t.dataset.g !== undefined) { gIdx = +t.dataset.g; renderGains(D.flagships.filter(f => f.vendor === co)); }
   else if (t.dataset.bt !== undefined) { bIdx = +t.dataset.bt; bAll = false; renderBench(); }
 });
-$('#nf-t').addEventListener('change', e => { nf.t = e.target.value; nAll = false; renderNews(); });
+/* ---------- glass dropdown (listbox) ---------- */
+const drop = $('#nf-t'), dbtn = drop.querySelector('.dbtn'), menu = drop.querySelector('.menu'), opts = [...menu.querySelectorAll('[role=option]')];
+function setDrop(val) {
+  opts.forEach(o => o.setAttribute('aria-selected', o.dataset.val === val));
+  const cur = opts.find(o => o.dataset.val === val) || opts[0];
+  drop.querySelector('.dlabel').textContent = cur.textContent;
+}
+function openDrop(focusSel) {
+  menu.hidden = false; dbtn.setAttribute('aria-expanded', 'true');
+  const cur = menu.querySelector('[aria-selected=true]') || opts[0];
+  lens(menu, cur); liquify();
+  if (focusSel) cur.focus();
+}
+function closeDrop(refocus) { if (menu.hidden) return; menu.hidden = true; dbtn.setAttribute('aria-expanded', 'false'); if (refocus) dbtn.focus(); }
+function pick(o) { nf.t = o.dataset.val; nAll = false; closeDrop(true); renderNews(); }
+dbtn.addEventListener('click', () => menu.hidden ? openDrop(false) : closeDrop(false));
+dbtn.addEventListener('keydown', e => { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); openDrop(true); } });
+menu.addEventListener('click', e => { const o = e.target.closest('[role=option]'); if (o) pick(o); });
+menu.addEventListener('keydown', e => {
+  const i = opts.indexOf(document.activeElement);
+  if (e.key === 'ArrowDown') { e.preventDefault(); opts[Math.min(opts.length - 1, i + 1)].focus(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); opts[Math.max(0, i - 1)].focus(); }
+  else if (e.key === 'Home') { e.preventDefault(); opts[0].focus(); }
+  else if (e.key === 'End') { e.preventDefault(); opts[opts.length - 1].focus(); }
+  else if (e.key === 'Escape' || e.key === 'Tab') { closeDrop(e.key === 'Escape'); }
+});
+menu.addEventListener('focusin', e => { const o = e.target.closest('[role=option]'); if (o) lens(menu, o); });
+document.addEventListener('pointerdown', e => { if (!drop.contains(e.target)) closeDrop(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrop(true); });
+
+/* ---------- simulated refraction: keep each glass edge's magnified dot field aligned with the page ---------- */
+const M1 = 1.12, M2 = 1.32; // must match .lq1 / .lq2 background-size (24px x M)
+let glassEls = [], lqQueued = 0;
+function liquify() {
+  glassEls = $$('.glass');
+  glassEls.forEach(g => { if (!g.querySelector(':scope>.lq')) { const a = document.createElement('i'), b = document.createElement('i'); a.className = 'lq lq1'; b.className = 'lq lq2'; a.setAttribute('aria-hidden', 'true'); b.setAttribute('aria-hidden', 'true'); g.prepend(a, b); } });
+  placeLenses();
+}
+function placeLenses() {
+  const vh = innerHeight;
+  for (const g of glassEls) {
+    const r = g.getBoundingClientRect();
+    if (!r.width || r.bottom < -40 || r.top > vh + 40) continue;
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    // a page point q shows up at c + (q - c) * M, so the pattern's origin lands at c * (1 - M)
+    g.style.setProperty('--x1', (cx * (1 - M1) - r.left).toFixed(1) + 'px'); g.style.setProperty('--y1', (cy * (1 - M1) - r.top).toFixed(1) + 'px');
+    g.style.setProperty('--x2', (cx * (1 - M2) - r.left).toFixed(1) + 'px'); g.style.setProperty('--y2', (cy * (1 - M2) - r.top).toFixed(1) + 'px');
+  }
+}
+const queueLenses = () => { if (!lqQueued) lqQueued = requestAnimationFrame(() => { lqQueued = 0; placeLenses(); }); };
+addEventListener('scroll', queueLenses, {passive:true});
+addEventListener('resize', queueLenses, {passive:true});
+new MutationObserver(() => { if (!lqQueued) lqQueued = requestAnimationFrame(() => { lqQueued = 0; liquify(); }); }).observe(document.body, {childList:true, subtree:true});
 $('#nf-q').addEventListener('input', e => { nf.q = e.target.value.slice(0, 60); nAll = false; renderNews(); });
 $('#p-calm').addEventListener('change', e => { prefs.calm = e.target.checked; savePrefs(); });
 $$('[data-pv]').forEach(c => c.addEventListener('change', () => { const v = c.dataset.pv; prefs.vendors = c.checked ? [...new Set([...prefs.vendors, v])] : prefs.vendors.filter(x => x !== v); savePrefs(); renderBadge(); }));
@@ -279,7 +331,7 @@ $('#p-reset').addEventListener('click', () => { seen = D.events.filter(e => diff
 $('#readall').addEventListener('click', () => { seen = [...new Set([...seen, ...D.events.filter(want).map(e => e.id)])]; ls.set('fmr-seen', seen); renderNews(); toast('모두 읽음으로 표시했습니다', 0); });
 const mq = matchMedia('(prefers-color-scheme: dark)');
 if (mq.addEventListener) mq.addEventListener('change', () => { if (prefs.theme === 'auto') applyPrefs(); });
-window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
+window.addEventListener('hashchange', () => { closeDrop(false); route(); window.scrollTo(0, 0); });
 let raf = 0;
 document.addEventListener('pointermove', ev => {
   if (raf || prefs.calm) return;
@@ -297,7 +349,7 @@ fetch('data.json', {cache:'no-store', credentials:'same-origin'}).then(r => { if
   $('#chk').textContent = checkedAgo();
   $('#sidestat').textContent = `${D.schedule || '자동 점검'} · ${checkedAgo()}`;
   const n = renderBadge();
-  route(); ro.observe(document.body);
+  route(); ro.observe(document.body); liquify();
   if (n) toast(`${firstVisit ? '최근 10일' : '읽지 않은'} 소식 ${n}건`, 700);
 }).catch(err => { $('#d-lead').textContent = '데이터를 불러오지 못했습니다 (' + String(err.message).slice(0, 40) + '). 잠시 후 새로고침해 주세요.'; });
 })();

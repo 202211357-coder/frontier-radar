@@ -56,7 +56,7 @@
         <div class="seg glass" id="nf-v"><span class="lens" aria-hidden="true"></span><button data-nv="">모든 회사</button><button data-nv="google">Google</button><button data-nv="openai">OpenAI</button><button data-nv="anthropic">Anthropic</button></div>
       </div>
       <div class="ctl">
-        <select class="field glass" id="nf-t" aria-label="유형"><option value="">모든 유형</option><option value="launch">출시</option><option value="retire">지원 중단·퇴역</option><option value="update">기타 변경</option></select>
+        <div class="dsel" id="nf-t"><button class="field glass dbtn press" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="nf-t-list" aria-label="유형 선택"><span class="dlabel">모든 유형</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="menu glass hi" id="nf-t-list" role="listbox" aria-label="유형" tabindex="-1" hidden><span class="lens" aria-hidden="true"></span><button type="button" role="option" data-val="">모든 유형</button><button type="button" role="option" data-val="launch">출시</button><button type="button" role="option" data-val="retire">지원 중단·퇴역</button><button type="button" role="option" data-val="update">기타 변경</button></div></div>
         <input class="field glass" id="nf-q" type="search" placeholder="모델명 검색 (예: Sol, Neon)" aria-label="모델 검색" maxlength="60">
       </div>
       <div class="panel glass"><div class="list" id="newslist"></div></div>
