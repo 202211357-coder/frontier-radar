@@ -35,15 +35,15 @@ UA = {"User-Agent": "Mozilla/5.0 (compatible; frontier-radar/1.0; +https://githu
 # ---------------------------------------------------------------- sources
 SOURCES = [
     # dated changelog pages: split into sections by "Month D, YYYY"
-    {"id": "gem-changelog", "vendor": "google", "kind": "dated", "url": "https://aistudio.google.com/docs/changelog"},
-    {"id": "claude-rn", "vendor": "anthropic", "kind": "dated", "url": "https://platform.claude.com/docs/en/release-notes/overview"},
-    {"id": "openai-rn", "vendor": "openai", "kind": "dated", "url": "https://help.openai.com/en/articles/9624314-model-release-notes"},
+    {"id": "gem-changelog", "name": "Gemini API changelog", "vendor": "google", "kind": "dated", "url": "https://aistudio.google.com/docs/changelog"},
+    {"id": "claude-rn", "name": "Claude Platform 릴리스 노트", "vendor": "anthropic", "kind": "dated", "url": "https://platform.claude.com/docs/en/release-notes/overview"},
+    {"id": "openai-rn", "name": "OpenAI 모델 릴리스 노트", "vendor": "openai", "kind": "dated", "url": "https://help.openai.com/en/articles/9624314-model-release-notes"},
     # news feeds
-    {"id": "openai-news", "vendor": "openai", "kind": "rss", "url": "https://openai.com/news/rss.xml"},
-    {"id": "google-ai", "vendor": "google", "kind": "rss", "url": "https://blog.google/technology/ai/rss/"},
-    {"id": "deepmind", "vendor": "google", "kind": "rss", "url": "https://deepmind.google/blog/rss.xml"},
+    {"id": "openai-news", "name": "OpenAI News RSS", "vendor": "openai", "kind": "rss", "url": "https://openai.com/news/rss.xml"},
+    {"id": "google-ai", "name": "Google AI 블로그 RSS", "vendor": "google", "kind": "rss", "url": "https://blog.google/technology/ai/rss/"},
+    {"id": "deepmind", "name": "Google DeepMind 블로그 RSS", "vendor": "google", "kind": "rss", "url": "https://deepmind.google/blog/rss.xml"},
     # Anthropic has no news feed: watch article links on the news index
-    {"id": "anthropic-news", "vendor": "anthropic", "kind": "links", "url": "https://www.anthropic.com/news", "base": "https://www.anthropic.com"},
+    {"id": "anthropic-news", "name": "Anthropic News", "vendor": "anthropic", "kind": "links", "url": "https://www.anthropic.com/news", "base": "https://www.anthropic.com"},
 ]
 # Optional: model-list APIs (only run when the key is set). New model IDs are the most reliable signal.
 MODEL_APIS = [
@@ -369,31 +369,39 @@ def write_feed(data, site_url):
 
 
 def notify(added, site_url):
+    """Send alerts; return the names of channels that accepted the message."""
+    sent = []
     if not added:
-        return
+        return sent
     head = ", ".join(f"{e['model']}" for e in added[:3]) + (f" 외 {len(added) - 3}건" if len(added) > 3 else "")
     body = "\n".join(f"• [{e['vendor']}] {e['date']} {e['title']}" for e in added[:10])
     title = f"새 AI 모델 소식: {head}"
     if os.environ.get("NTFY_TOPIC"):
         server = os.environ.get("NTFY_SERVER", "https://ntfy.sh").rstrip("/")
         try:
-            requests.post(f"{server}/{os.environ['NTFY_TOPIC']}", data=body.encode(),
-                          headers={"Title": title.encode(), "Click": site_url, "Tags": "rocket"}, timeout=20)
+            r = requests.post(f"{server}/{os.environ['NTFY_TOPIC']}", data=body.encode(),
+                              headers={"Title": title.encode(), "Click": site_url, "Tags": "rocket"}, timeout=20)
+            if r.ok:
+                sent.append("ntfy")
         except Exception as e:  # noqa: BLE001
             print(f"[warn] ntfy: {e}", file=sys.stderr)
     if os.environ.get("TELEGRAM_BOT_TOKEN") and os.environ.get("TELEGRAM_CHAT_ID"):
         try:
-            requests.post(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage",
-                          json={"chat_id": os.environ["TELEGRAM_CHAT_ID"], "text": f"{title}\n{body}\n{site_url}"}, timeout=20)
+            r = requests.post(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/sendMessage",
+                              json={"chat_id": os.environ["TELEGRAM_CHAT_ID"], "text": f"{title}\n{body}\n{site_url}"}, timeout=20)
+            if r.ok:
+                sent.append("telegram")
         except Exception as e:  # noqa: BLE001
             print(f"[warn] telegram: {e}", file=sys.stderr)
     if os.environ.get("WEBHOOK_URL"):
         u = os.environ["WEBHOOK_URL"]
         payload = {"content": f"**{title}**\n{body}\n{site_url}"} if "discord" in u else {"text": f"*{title}*\n{body}\n{site_url}"}
         try:
-            requests.post(u, json=payload, timeout=20)
+            if requests.post(u, json=payload, timeout=20).ok:
+                sent.append("webhook")
         except Exception as e:  # noqa: BLE001
             print(f"[warn] webhook: {e}", file=sys.stderr)
+    return sent
 
 
 def main():
@@ -409,13 +417,24 @@ def main():
     seen = set(state["seen"])
     bootstrap = args.bootstrap or not STATE.exists()
 
-    cands, errors = [], []
+    cands, errors, watch = [], [], []
     for src in SOURCES:
+        row = {k: src[k] for k in ("id", "vendor", "name", "kind", "url")}
         try:
-            cands += COLLECT[src["kind"]](src)
+            got = COLLECT[src["kind"]](src)
+            cands += got
+            row.update(ok=True, items=len(got))
         except Exception as e:  # noqa: BLE001
             errors.append(f"{src['id']}: {e}")
-    cands += collect_model_apis()
+            row.update(ok=False, items=0, error=str(e)[:160])
+        watch.append(row)
+    api = collect_model_apis()
+    cands += api
+    for a in MODEL_APIS:
+        on = bool(os.environ.get(a["env"]))
+        watch.append({"id": a["id"], "vendor": a["vendor"], "name": f"{a['vendor']} 모델 목록 API", "kind": "api",
+                      "url": a["url"].split("?")[0], "ok": on, "items": sum(c["source"] == a["id"] for c in api),
+                      **({} if on else {"off": True})})
     fresh = [c for c in cands if c["key"] not in seen]
     rel = [c for c in fresh if relevant(c)]
     print(f"collected {len(cands)} items, {len(fresh)} unseen, {len(rel)} model-related; errors: {errors or 'none'}")
@@ -433,16 +452,21 @@ def main():
     data["updated"] = today
     data["checked"] = dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M KST")
     data["errors"] = errors
+    data["watch"] = watch
 
     if args.dry_run:
         print("dry run: nothing written")
         return
+    sent = notify(added, site_url)
+    if added:
+        data.setdefault("alerts", []).insert(0, {"at": data["checked"], "count": len(added), "channels": sent,
+                                                 "items": [e["id"] for e in added][:20]})
+        data["alerts"] = data["alerts"][:100]
     (SITE / "data.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
     write_feed(data, site_url)
     STATE.write_text(json.dumps({"seen": sorted(seen | {c["key"] for c in cands})}, indent=0))
     if bootstrap:
         print(f"bootstrap: remembered {len(cands)} items; next runs report only new ones")
-    notify(added, site_url)
 
 
 if __name__ == "__main__":

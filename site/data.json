@@ -1193,6 +1193,101 @@
    7.5
   ]
  ],
- "checked": "2026-11-27 10:58 KST",
- "errors": []
+ "checked": "2026-11-27 12:24 KST",
+ "errors": [],
+ "watch": [
+  {
+   "id": "gem-changelog",
+   "vendor": "google",
+   "name": "Gemini API changelog",
+   "kind": "dated",
+   "url": "https://aistudio.google.com/docs/changelog",
+   "ok": true,
+   "items": 369
+  },
+  {
+   "id": "claude-rn",
+   "vendor": "anthropic",
+   "name": "Claude Platform 릴리스 노트",
+   "kind": "dated",
+   "url": "https://platform.claude.com/docs/en/release-notes/overview",
+   "ok": true,
+   "items": 399
+  },
+  {
+   "id": "openai-rn",
+   "vendor": "openai",
+   "name": "OpenAI 모델 릴리스 노트",
+   "kind": "dated",
+   "url": "https://help.openai.com/en/articles/9624314-model-release-notes",
+   "ok": true,
+   "items": 191
+  },
+  {
+   "id": "openai-news",
+   "vendor": "openai",
+   "name": "OpenAI News RSS",
+   "kind": "rss",
+   "url": "https://openai.com/news/rss.xml",
+   "ok": true,
+   "items": 60
+  },
+  {
+   "id": "google-ai",
+   "vendor": "google",
+   "name": "Google AI 블로그 RSS",
+   "kind": "rss",
+   "url": "https://blog.google/technology/ai/rss/",
+   "ok": true,
+   "items": 20
+  },
+  {
+   "id": "deepmind",
+   "vendor": "google",
+   "name": "Google DeepMind 블로그 RSS",
+   "kind": "rss",
+   "url": "https://deepmind.google/blog/rss.xml",
+   "ok": true,
+   "items": 60
+  },
+  {
+   "id": "anthropic-news",
+   "vendor": "anthropic",
+   "name": "Anthropic News",
+   "kind": "links",
+   "url": "https://www.anthropic.com/news",
+   "ok": true,
+   "items": 27
+  },
+  {
+   "id": "api-openai",
+   "vendor": "openai",
+   "name": "openai 모델 목록 API",
+   "kind": "api",
+   "url": "https://api.openai.com/v1/models",
+   "ok": false,
+   "items": 0,
+   "off": true
+  },
+  {
+   "id": "api-anthropic",
+   "vendor": "anthropic",
+   "name": "anthropic 모델 목록 API",
+   "kind": "api",
+   "url": "https://api.anthropic.com/v1/models",
+   "ok": false,
+   "items": 0,
+   "off": true
+  },
+  {
+   "id": "api-gemini",
+   "vendor": "google",
+   "name": "google 모델 목록 API",
+   "kind": "api",
+   "url": "https://generativelanguage.googleapis.com/v1beta/models",
+   "ok": false,
+   "items": 0,
+   "off": true
+  }
+ ]
 }
